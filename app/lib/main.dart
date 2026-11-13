@@ -104,48 +104,52 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget buildMenu() {
-    return Container(
-      color: const Color(0xFF102A43),
-      child: SafeArea(
-        child: ListView(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Text(
-                'INVENTARIO ERP',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+  
+Widget buildMenu() {
+  return Material(
+    color: const Color(0xFF102A43),
+    child: SafeArea(
+      child: ListView(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'INVENTARIO ERP',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            for (int i = 0; i < sections.length; i++)
-              ListTile(
-                leading: Icon(
-                  sectionIcons[i],
-                  color: Colors.white70,
-                ),
-                title: Text(
-                  sections[i],
-                  style: const TextStyle(color: Colors.white),
-                ),
-                selected: selectedIndex == i,
-                selectedTileColor: Colors.white12,
-                onTap: () {
-                  setState(() => selectedIndex = i);
-
-                  if (MediaQuery.sizeOf(context).width < 850) {
-                    Navigator.of(context).pop();
-                  }
-                },
+          ),
+          for (int i = 0; i < sections.length; i++)
+            ListTile(
+              leading: Icon(
+                sectionIcons[i],
+                color: Colors.white70,
               ),
-          ],
-        ),
+              title: Text(
+                sections[i],
+                style: const TextStyle(color: Colors.white),
+              ),
+              selected: selectedIndex == i,
+              selectedTileColor: Colors.white12,
+              onTap: () {
+                setState(() {
+                  selectedIndex = i;
+                });
+
+                if (MediaQuery.sizeOf(context).width < 850) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget buildDashboard() {
     return ListView(
