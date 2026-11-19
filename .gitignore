@@ -1,0 +1,57 @@
+# ==================================
+# INVENTARIO ERP LOGISTICS
+# ==================================
+
+# Configuración privada
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Laravel
+backend/vendor/
+backend/node_modules/
+backend/public/build/
+backend/bootstrap/cache/*.php
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/.phpunit.result.cache
+backend/database/*.sqlite
+backend/database/*.sqlite-*
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+**/build/
+**/.dart_tool/
+**/.flutter-plugins-dependencies
+
+# Archivos temporales y respaldos
+*.bak
+*.tmp
+*.log
+*.swp
+*~
+resultado_analisis.txt
+
+# Configuración local de editores
+.idea/
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos de prueba locales
+*.pid
+*.seed

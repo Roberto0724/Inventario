@@ -1,11 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inventario_erp/main.dart';
 
 void main() {
-  testWidgets('El dashboard principal se carga correctamente',
-      (WidgetTester tester) async {
+  testWidgets('El panel principal se carga correctamente', (
+    WidgetTester tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(1280, 900));
 
     addTearDown(() async {

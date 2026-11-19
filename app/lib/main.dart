@@ -1,5 +1,13 @@
-
 import 'package:flutter/material.dart';
+
+import 'features/productos/pagina_productos.dart';
+import 'features/categorias/pagina_categorias.dart';
+import 'features/almacenes/pagina_almacenes.dart';
+import 'features/existencias/pagina_existencias.dart';
+import 'features/movimientos/pagina_movimientos.dart';
+import 'features/dashboard/servicio_dashboard.dart';
+import 'features/movimientos/modelo_movimiento_inventario.dart';
+import 'features/logistica/pagina_ordenes_despacho.dart';
 
 void main() {
   runApp(const InventarioApp());
@@ -15,47 +23,62 @@ class InventarioApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF155E75),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF155E75)),
         scaffoldBackgroundColor: const Color(0xFFF4F7FA),
       ),
-      home: const DashboardPage(),
+      home: const PaginaPrincipal(),
     );
   }
 }
 
-class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+class PaginaPrincipal extends StatefulWidget {
+  const PaginaPrincipal({super.key});
 
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
+  State<PaginaPrincipal> createState() => _PaginaPrincipalState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
-  int selectedIndex = 0;
+class _PaginaPrincipalState extends State<PaginaPrincipal> {
+  int indiceSeleccionado = 0;
 
-  final List<String> sections = [
+  final ServicioDashboard _servicioDashboard = ServicioDashboard();
+  late Future<EstadisticasDashboard> _estadisticasDashboard;
+
+  final List<String> secciones = [
     'Dashboard',
     'Productos',
+    'Categorías',
     'Almacenes',
+    'Existencias',
     'Movimientos',
     'Logística',
     'Licencias',
   ];
 
-  final List<IconData> sectionIcons = [
+  final List<IconData> iconosSecciones = [
     Icons.dashboard_outlined,
     Icons.inventory_2_outlined,
+    Icons.category_outlined,
     Icons.warehouse_outlined,
-    Icons.swap_horiz,
+    Icons.inventory_outlined,
+    Icons.swap_horiz_outlined,
     Icons.local_shipping_outlined,
     Icons.vpn_key_outlined,
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _actualizarEstadisticas();
+  }
+
+  void _actualizarEstadisticas() {
+    _estadisticasDashboard = _servicioDashboard.obtenerEstadisticas();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.sizeOf(context).width >= 850;
+    final pantallaAncha = MediaQuery.sizeOf(context).width >= 850;
 
     return Scaffold(
       appBar: AppBar(
@@ -72,182 +95,317 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
-            child: CircleAvatar(
-              child: Icon(Icons.person_outline),
-            ),
+            child: CircleAvatar(child: Icon(Icons.person_outline)),
           ),
         ],
       ),
-      drawer: isWide ? null : Drawer(child: buildMenu()),
+      drawer: pantallaAncha ? null : Drawer(child: construirMenu()),
       body: Row(
         children: [
-          if (isWide)
-            SizedBox(
-              width: 240,
-              child: buildMenu(),
-            ),
-          Expanded(
-            child: selectedIndex == 0
-                ? buildDashboard()
-                : Center(
-                    child: Text(
-                      sections[selectedIndex],
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-          ),
+          if (pantallaAncha) SizedBox(width: 240, child: construirMenu()),
+          Expanded(child: construirContenido()),
         ],
       ),
     );
   }
 
   
-Widget buildMenu() {
-  return Material(
-    color: const Color(0xFF102A43),
-    child: SafeArea(
-      child: ListView(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'INVENTARIO ERP',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          for (int i = 0; i < sections.length; i++)
-            ListTile(
-              leading: Icon(
-                sectionIcons[i],
-                color: Colors.white70,
-              ),
-              title: Text(
-                sections[i],
-                style: const TextStyle(color: Colors.white),
-              ),
-              selected: selectedIndex == i,
-              selectedTileColor: Colors.white12,
-              onTap: () {
-                setState(() {
-                  selectedIndex = i;
-                });
+Widget construirContenido() {
+  switch (indiceSeleccionado) {
+    case 0:
+      return construirPanelPrincipal();
 
-                if (MediaQuery.sizeOf(context).width < 850) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-        ],
-      ),
-    ),
-  );
+    case 1:
+      return const PaginaProductos();
+
+    case 2:
+      return const PaginaCategorias();
+
+    case 3:
+      return const PaginaAlmacenes();
+
+    case 4:
+      return const PaginaExistencias();
+
+    case 5:
+      return const PaginaMovimientos();
+
+    case 6:
+      return const PaginaOrdenesDespacho();
+
+    default:
+      return Center(
+        child: Text(
+          secciones[indiceSeleccionado],
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+  }
 }
 
 
-  Widget buildDashboard() {
+  Widget construirMenu() {
+    return Material(
+      color: const Color(0xFF102A43),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'INVENTARIO ERP',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            for (int indice = 0; indice < secciones.length; indice++)
+              Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  leading: Icon(iconosSecciones[indice], color: Colors.white70),
+                  title: Text(
+                    secciones[indice],
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  selected: indiceSeleccionado == indice,
+                  selectedTileColor: Colors.white12,
+                  onTap: () {
+                    setState(() {
+                      indiceSeleccionado = indice;
+                      if (indice == 0) _actualizarEstadisticas();
+                    });
+                    if (MediaQuery.sizeOf(context).width < 850) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget construirPanelPrincipal() {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
         const Text(
           'Panel principal',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         const Text(
           'Resumen general de las operaciones de inventario',
           style: TextStyle(color: Colors.black54),
         ),
-        const SizedBox(height: 24),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 900
-                ? 4
-                : constraints.maxWidth >= 500
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerRight,
+          child: OutlinedButton.icon(
+            onPressed: () => setState(_actualizarEstadisticas),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Actualizar'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        FutureBuilder<EstadisticasDashboard>(
+          future: _estadisticasDashboard,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Padding(
+                padding: EdgeInsets.all(40),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasError) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 36,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Error al cargar estadísticas: ${snapshot.error}',
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () => setState(_actualizarEstadisticas),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Reintentar'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            if (!snapshot.hasData) {
+              return const Center(
+                child: Text('No hay estadísticas disponibles.'),
+              );
+            }
+
+            final estadisticas = snapshot.data!;
+            return LayoutBuilder(
+              builder: (context, restricciones) {
+                final columnas = restricciones.maxWidth >= 900
+                    ? 4
+                    : restricciones.maxWidth >= 500
                     ? 2
                     : 1;
-
-            return GridView.count(
-              crossAxisCount: columns,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: columns == 1 ? 3.2 : 1.7,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                buildStatCard(
-                  'Total productos',
-                  '0',
-                  Icons.inventory_2_outlined,
-                  Colors.blue,
-                ),
-                buildStatCard(
-                  'Almacenes',
-                  '0',
-                  Icons.warehouse_outlined,
-                  Colors.green,
-                ),
-                buildStatCard(
-                  'Movimientos',
-                  '0',
-                  Icons.swap_horiz,
-                  Colors.orange,
-                ),
-                buildStatCard(
-                  'Stock bajo',
-                  '0',
-                  Icons.warning_amber_outlined,
-                  Colors.red,
-                ),
-              ],
+                return GridView.count(
+                  crossAxisCount: columnas,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  mainAxisExtent: 160,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    construirTarjetaEstadistica(
+                      'Total productos',
+                      estadisticas.totalProductos.toString(),
+                      Icons.inventory_2_outlined,
+                      Colors.blue,
+                    ),
+                    construirTarjetaEstadistica(
+                      'Almacenes',
+                      estadisticas.totalAlmacenes.toString(),
+                      Icons.warehouse_outlined,
+                      Colors.green,
+                    ),
+                    construirTarjetaEstadistica(
+                      'Movimientos',
+                      estadisticas.totalMovimientos.toString(),
+                      Icons.swap_horiz,
+                      Colors.orange,
+                    ),
+                    construirTarjetaEstadistica(
+                      'Stock bajo',
+                      estadisticas.productosStockBajo.toString(),
+                      Icons.warning_amber_outlined,
+                      Colors.red,
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
         const SizedBox(height: 24),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Actividad reciente',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+        FutureBuilder<EstadisticasDashboard>(
+          future: _estadisticasDashboard,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done ||
+                snapshot.hasError ||
+                !snapshot.hasData) {
+              return const SizedBox.shrink();
+            }
+            final movimientos = snapshot.data!.movimientosRecientes;
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Actividad reciente',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    if (movimientos.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Text('Todavía no hay movimientos registrados.'),
+                      )
+                    else
+                      for (final movimiento in movimientos)
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            _iconoMovimiento(movimiento.tipo),
+                            color: _colorMovimiento(movimiento.tipo),
+                          ),
+                          title: Text(
+                            '${movimiento.tipo.toUpperCase()} · ${movimiento.nombreProducto}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(_detalleMovimiento(movimiento)),
+                          trailing: Text('${movimiento.cantidad} uds.'),
+                        ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    'Todavía no hay movimientos registrados.',
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget buildStatCard(
-    String title,
-    String value,
-    IconData icon,
+  IconData _iconoMovimiento(String tipo) {
+    switch (tipo.toLowerCase()) {
+      case 'entrada':
+        return Icons.arrow_downward;
+      case 'salida':
+        return Icons.arrow_upward;
+      case 'transferencia':
+        return Icons.swap_horiz;
+      default:
+        return Icons.history;
+    }
+  }
+
+  Color _colorMovimiento(String tipo) {
+    switch (tipo.toLowerCase()) {
+      case 'entrada':
+        return Colors.green;
+      case 'salida':
+        return Colors.orange;
+      case 'transferencia':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _detalleMovimiento(MovimientoInventario movimiento) {
+    final origen = movimiento.almacenOrigen;
+    final destino = movimiento.almacenDestino;
+    final ubicacion = [
+      if (origen != null && origen.isNotEmpty) 'Origen: $origen',
+      if (destino != null && destino.isNotEmpty) 'Destino: $destino',
+    ].join(' · ');
+    final fecha = movimiento.fecha;
+    final fechaTexto = fecha == null
+        ? ''
+        : '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+    return [
+      ubicacion,
+      fechaTexto,
+    ].where((texto) => texto.isNotEmpty).join(' · ');
+  }
+
+  Widget construirTarjetaEstadistica(
+    String titulo,
+    String valor,
+    IconData icono,
     Color color,
   ) {
     return Card(
@@ -258,17 +416,14 @@ Widget buildMenu() {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: color),
+            Icon(icono, size: 32, color: color),
             const SizedBox(height: 10),
             Text(
-              value,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              valor,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             Text(
-              title,
+              titulo,
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.black54),
             ),
